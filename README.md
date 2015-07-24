@@ -1,5 +1,5 @@
 # SCBL AutoSync
-This userscript auto-adds all players in the SCBL blocklist to your Steam Community ignore list and keeps it up-to-date.
+This userscript auto-adds all players in the SCBL blocklist to your Steam Community ignore list and keeps it up-to-date.  
 Your own bans will not be touched, this script only **adds** entries to your ignore list.
 
 ## Installation
