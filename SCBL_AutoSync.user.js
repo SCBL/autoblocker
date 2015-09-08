@@ -165,25 +165,28 @@ function UI () {
     }
 
     var tabs = document.getElementsByClassName ('sectionTabs')[0];
-    if (!tabs)
+    if (tabs)
     {
-        throw new Error ('Can not find sectionTabs');
+        {
+            var tabs_child = tabs.getElementsByClassName ('sectionTabs')[0];
+            if (tabs_child)
+                tabs = tabs_child;
+        }
+
+        var button = document.createElement ('a');
+        button.className = 'sectionTab';
+        button.setAttribute ('style', 'background-color: rgb(82, 0, 82); border-color: rgb(140, 0, 0);');
+        button.addEventListener ('click', SCBLPrompt, false);
+        button.innerHTML = 'SCBL Sync';
+
+        tabs.insertBefore (button, tabs.firstChild);
     }
+    else
     {
-        var tabs_child = tabs.getElementsByClassName ('sectionTabs')[0];
-        if (tabs_child)
-            tabs = tabs_child;
+        console.log ('[SCBL] Can not find sectionTabs');
     }
 
-    var button = document.createElement ('a');
-    button.className = 'sectionTab';
-    button.setAttribute ('style', 'background-color: rgb(82, 0, 82); border-color: rgb(140, 0, 0);');
-    button.addEventListener ('click', SCBLPrompt, false);
-    button.innerHTML = 'SCBL Sync';
-
-    tabs.insertBefore (button, tabs.firstChild);
-
-    console.log ("[SCBL] Loaded inline script.");
+    console.log ('[SCBL] Loaded inline script.');
 
     // Auto-run
 
