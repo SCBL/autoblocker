@@ -1,7 +1,7 @@
 // ==UserScript==
 // @author      PotcFdk
 // @name        SCBL Autoblocker
-// @version     0.0.2
+// @version     0.0.3
 // @namespace   https://github.com/SCBL/autoblocker
 // @description Auto-ignores all players in the SCBL blocklist.
 // @match       http://steamcommunity.com/*
