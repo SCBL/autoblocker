@@ -96,7 +96,7 @@ function UI () {
         {
             console.log ('Blocking ', entry.steamid, '...');
             $J.post (
-                'https://steamcommunity.com/actions/BlockUserAjax',
+                '//steamcommunity.com/actions/BlockUserAjax',
                 {sessionID: g_sessionID, steamid: entry.steamid}
             ).done (function () {
                 console.log ('Blocked ', entry.steamid);
