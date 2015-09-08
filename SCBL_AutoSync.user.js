@@ -164,19 +164,19 @@ function UI () {
         });   
     }
 
-    var tabs = document.getElementsByClassName ('graytab_ctn')[0];
+    var tabs = document.getElementsByClassName ('sectionTabs')[0];
     if (!tabs)
     {
-        throw new Error ('Can not find .graytab_ctn');
+        throw new Error ('Can not find sectionTabs');
     }
     {
-        var tabs_child = tabs.getElementsByClassName ('graytab_ctn')[0];
+        var tabs_child = tabs.getElementsByClassName ('sectionTabs')[0];
         if (tabs_child)
             tabs = tabs_child;
     }
 
     var button = document.createElement ('a');
-    button.className = 'graytab';
+    button.className = 'sectionTab';
     button.setAttribute ('style', 'background-color: rgb(82, 0, 82); border-color: rgb(140, 0, 0);');
     button.addEventListener ('click', SCBLPrompt, false);
     button.innerHTML = 'SCBL Sync';
