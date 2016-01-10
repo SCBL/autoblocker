@@ -1,7 +1,7 @@
 // ==UserScript==
 // @author      PotcFdk
 // @name        SCBL Autoblocker
-// @version     0.0.4
+// @version     0.1.0
 // @namespace   https://github.com/SCBL/autoblocker
 // @description Auto-ignores all players in the SCBL blocklist.
 // @match       http://steamcommunity.com/*
@@ -12,19 +12,19 @@
 // ==/UserScript==
 
 /*
-	SCBL Autoblocker - Copyright (c) PotcFdk, 2015
+    SCBL Autoblocker - Copyright (c) PotcFdk, 2015 - 2016
 
-	Licensed under the Apache License, Version 2.0 (the "License");
-	you may not use this file except in compliance with the License.
-	You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-	http://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
-	Unless required by applicable law or agreed to in writing, software
-	distributed under the License is distributed on an "AS IS" BASIS,
-	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	See the License for the specific language governing permissions and
-	limitations under the License.
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 */
 
 function _SCBLUpdate (hidden, callback)
@@ -42,6 +42,21 @@ function _SCBLUpdate (hidden, callback)
 }
 
 unsafeWindow._SCBLUpdate = exportFunction (_SCBLUpdate, unsafeWindow);
+
+function _GetSteamIDByProfileURL (profileurl, callback)
+{
+    GM_xmlhttpRequest ({
+        method: 'GET',
+        url: profileurl + '?xml=1',
+        onload: function (response) {
+            var r1 = cloneInto (profileurl, unsafeWindow);
+            var r2 = cloneInto (response.responseXML.getElementsByTagName('steamID64')[0].textContent, unsafeWindow);
+            callback (r1, r2);
+        }
+    });
+}
+
+unsafeWindow._GetSteamIDByProfileURL = exportFunction (_GetSteamIDByProfileURL, unsafeWindow);
 
 // UI
 
@@ -65,15 +80,23 @@ function UI () {
         localStorage.setItem ('SCBLVersion', list_version);
         console.log ('Updated stored SCBL list version to ' + list_version);
     }
+    
+    function saveList (list)
+    {
+        localStorage.setItem ('SCBLList', JSON.stringify(list));
+        console.log ('Updated stored SCBL list cache.');
+    }
 
-    function onCompleted (list_version, failures)
+    function onCompleted (list, failures)
     {
         console.log ('Finished with ', failures, ' errors.');
 
         if (failures == 0)
         {
-            saveListVersion (list_version);
+            saveListVersion (list.metadata.version);
         }
+        
+        saveList (list);
 
         dismissModal ();
         ShowAlertDialog ('SCBL',
@@ -106,7 +129,7 @@ function UI () {
             }).always (function () {
                 completed ++;
                 if (completed >= list.list.length)
-                    onCompleted (list.metadata.version, failures);
+                    onCompleted (list, failures);
             });
         }
     }
@@ -199,6 +222,74 @@ function UI () {
         console.log ('[SCBL] Triggering auto-check...');
         SCBLUpdate (true);
         sessionStorage.setItem ('SCBLLastRun', now);
+    }
+    
+    // Add blocklist hotlinks to the banned user entries, if possible
+    
+    var memberList = document.getElementById ('memberList');
+    if (memberList)
+    {
+        var members = memberList.getElementsByClassName ('friendBlock');
+        var list = JSON.parse(localStorage.getItem ('SCBLList'));
+        if (list)
+        {
+            var datamap = {};
+            for (var entry of list)
+            {
+                datamap [entry.steamid] = entry.data;
+            }
+            
+            for (var member of members)
+            {
+                (function (member) {
+                    _GetSteamIDByProfileURL (member.getAttribute ('href'), function (url, response)
+                    {
+                        if (datamap [response])
+                        {
+                            // Add SCBL Info
+                            
+                            var dataurl = 'https://github.com/SCBL/blocklist-data/tree/master/' + datamap [response];
+                            var blockedText = member.getElementsByClassName ('blockedText')[0];
+                            if (blockedText)
+                            {
+                                blockedText.textContent = 'Blocked (in SCBL)';
+                            }
+                            
+                            var scbl_url = document.createElement ('a');
+                            scbl_url.setAttribute ('href', dataurl);
+                            scbl_url.setAttribute ('target', '_blank');
+                            scbl_url.textContent = '[SCBL details]';
+                            
+                            member.appendChild (scbl_url);
+                            
+                            var friendBlockLinkOverlay = member.getElementsByClassName ('friendBlockLinkOverlay')[0];
+                            if (friendBlockLinkOverlay) // Remove huge <a> to allow the SCBL details link to be clicked
+                            {
+                                member.removeChild (friendBlockLinkOverlay);
+                                var playerAvatar = member.getElementsByClassName ('playerAvatar')[0];
+                                if (playerAvatar) // Re-add <a> on the avatar
+                                {
+                                    member.removeChild (playerAvatar);
+                                    var profile_url = document.createElement ('a');
+                                    profile_url.setAttribute ('href', url);
+                                    
+                                    profile_url.appendChild (playerAvatar);
+                                    member.insertBefore (profile_url, member.firstChild);
+                                }
+                            }
+                        }
+                    });
+                })(member);
+            }
+        }
+        else
+        {
+            console.log ('[SCBL] List is not in the cache!')
+        }
+    }
+    else
+    {
+        console.log ('[SCBL] Can not find memberList');
     }
 };
 
